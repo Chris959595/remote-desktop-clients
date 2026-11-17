@@ -1,0 +1,7 @@
+# Generato da MyRDP Builder. 8 = nascosto (View.GONE)
+connectionGridActivity:
+  visibility:
+    actionMorpheusly: 8
+rateOrShareFragment:
+  title:
+    key: "action_rate_or_share_app"

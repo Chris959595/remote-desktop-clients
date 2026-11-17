@@ -1,0 +1,85 @@
+// Generato da MyRDP Builder. Fork di aRDP (GPLv3) - https://github.com/iiordanov/remote-desktop-clients
+apply plugin: 'com.android.application'
+
+def p = project.getProperties()
+def appId = p.get("MYRDP_APP_ID", "it.example.myrdp")
+def ksPath = System.getenv("MYRDP_KEYSTORE")
+def hasKeystore = ksPath != null && !ksPath.isEmpty() && file(ksPath).exists()
+
+android {
+    compileSdkVersion compileApi
+
+    defaultConfig {
+        applicationId appId
+        targetSdkVersion targetApi
+        minSdkVersion p.get("SDK_VERSION")
+        versionCode Integer.parseInt(p.get("MYRDP_VERSION_CODE", "1").toString())
+        versionName p.get("MYRDP_VERSION_NAME", "1.0").toString()
+        multiDexEnabled true
+        manifestPlaceholders = [
+                myrdp_app_name: p.get("MYRDP_APP_NAME", "My RDP"),
+                myrdp_app_icon: p.get("MYRDP_APP_ICON", "icon_ardp")
+        ]
+        // Connessione precaricata al primo avvio (vuoto = nessuna)
+        resValue "string", "myrdp_default_host", p.get("MYRDP_DEFAULT_HOST", "").toString()
+        resValue "string", "myrdp_default_port", p.get("MYRDP_DEFAULT_PORT", "3389").toString()
+        resValue "string", "myrdp_default_nickname", p.get("MYRDP_DEFAULT_NICKNAME", "").toString()
+        resValue "string", "myrdp_default_user", p.get("MYRDP_DEFAULT_USER", "").toString()
+        resValue "string", "myrdp_default_domain", p.get("MYRDP_DEFAULT_DOMAIN", "").toString()
+    }
+
+    signingConfigs {
+        release {
+            if (hasKeystore) {
+                storeFile file(ksPath)
+                storePassword System.getenv("MYRDP_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("MYRDP_KEY_ALIAS")
+                keyPassword System.getenv("MYRDP_KEY_PASSWORD")
+            }
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
+            // Senza keystore usa la chiave di debug: l'APK si installa comunque,
+            // ma per aggiornarlo in futuro serve sempre la stessa chiave.
+            signingConfig hasKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    // namespace = applicationId: il codice cerca le risorse per nome usando il nome del pacchetto
+    namespace appId
+    lint {
+        disable 'Instantiatable'
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    api 'com.android.support:multidex:1.0.3'
+    implementation project(':bVNC')
+    implementation project(':pubkeyGenerator')
+}

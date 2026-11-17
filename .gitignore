@@ -221,3 +221,7 @@ check_elf_alignment*
 remote-desktop-clients-libs-*
 
 venv
+# keystore MyRDP
+*.p12
+*.jks
+*.keystore
