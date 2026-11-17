@@ -33,6 +33,17 @@ jobs:
           ./download-prebuilt-dependencies.sh
           ./bVNC/prepare_project.sh --skip-build libs nopath
 
+      - name: Allinea FreeRDP precompilato alle patch Java correnti
+        run: |
+          cd remoteClientLib/jni/libs/deps/FreeRDP
+          for f in ../../*_freerdp_*.patch; do
+            # solo patch che toccano il client Android Java/Gradle; quelle gia' presenti vengono saltate
+            if grep -q '^+++ b/client/Android/Studio/' "$f"; then
+              echo "== $(basename "$f")"
+              patch -N -t -p1 -r - < "$f" || echo "   (gia' applicata o non necessaria)"
+            fi
+          done
+
       - name: Prepara keystore di firma
         env:
           KS_B64: ${{ secrets.MYRDP_KEYSTORE_BASE64 }}
