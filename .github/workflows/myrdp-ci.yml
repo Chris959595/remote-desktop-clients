@@ -10,6 +10,9 @@ on:
       - 'gradle.properties'
       - '.github/workflows/myrdp-ci.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -66,5 +69,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: myRDP-apk
-          path: myRDP-app/build/outputs/apk/release/*.apk
+          path: |
+            myRDP-app/build/outputs/apk/release/*universal*.apk
+            myRDP-app/build/outputs/apk/release/*arm64-v8a*.apk
           if-no-files-found: error
+
+      - name: Pubblica APK nella release "myrdp-latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd myRDP-app/build/outputs/apk/release
+          ls -la
+          TAG=myrdp-latest
+          gh release delete "$TAG" --yes --cleanup-tag -R "$GITHUB_REPOSITORY" || true
+          gh release create "$TAG" *universal*.apk *arm64-v8a*.apk -R "$GITHUB_REPOSITORY" \
+            --title "MyRDP $(date +%Y-%m-%d)" --notes "Build automatica dal commit ${GITHUB_SHA::8}" --latest
