@@ -82,4 +82,8 @@ dependencies {
     api 'com.android.support:multidex:1.0.3'
     implementation project(':bVNC')
     implementation project(':pubkeyGenerator')
+    // Tipi usati da MyRdpApp tramite ConnectionBean (Connection, IdImplementationBase, SQLiteDatabase)
+    implementation project(':remoteClientLib')
+    implementation project(':common')
+    implementation (name: "android-database-sqlcipher-4.5.4", ext: "aar")
 }
